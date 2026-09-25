@@ -1,0 +1,48 @@
+/* Ahorremax: calm financial palette, a personal goal, and visible milestones. */
+:root{--brand-forest:#123f36;--brand-green:#087b59;--brand-blue:#315fae;--brand-gold:#ad7414}
+body{background:#f6f9f8;color:#203238}
+.screen-welcome .login-intro{position:relative;border-radius:30px;padding:40px;background:linear-gradient(145deg,#e6f7ef 0%,#f7fbfa 55%,#e8f0fb 100%);overflow:hidden}
+.screen-welcome .login-intro:after{content:'✦';position:absolute;right:24px;top:10px;color:#d7a542;font-size:5rem;opacity:.46;pointer-events:none}
+.login-intro h1{color:var(--brand-forest)}
+.login-intro h1 span{color:var(--brand-green)}
+.intro-chip{color:var(--brand-forest);background:#d8f2e7;border-color:#b8e3d0}
+.screen-setup .section-heading,.screen-goal .section-heading{max-width:720px;margin-inline:auto}
+.form-card{max-width:720px}
+.form-card label{color:var(--brand-forest)}
+.field-help{font-size:.86rem;line-height:1.5;color:#5f7880;margin:5px 0 12px}
+.purpose-suggestions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 26px}
+.purpose-suggestions button{background:#edf5fb;border:1px solid #cddfee;border-radius:100px;padding:8px 12px;font-size:.77rem;font-weight:700;color:#305c92;cursor:pointer}
+.purpose-suggestions button:hover,.purpose-suggestions button:focus-visible{background:#dcebf9;border-color:#7ba7d1}
+.personal-goal{display:flex;align-items:center;gap:16px;background:linear-gradient(105deg,#123f36,#1a5b50);color:#fff;border:1px solid #245e52;border-radius:20px;padding:20px 24px;margin:0 0 18px;box-shadow:0 12px 24px #0c463321}
+.goal-emblem{display:grid;place-items:center;width:50px;height:50px;flex:0 0 auto;border-radius:15px;background:#f4d78e;color:#70500f;font-size:1.7rem}
+.personal-goal-copy{min-width:0;flex:1}
+.personal-goal .eyebrow{display:block;color:#abdfd0;font-size:.64rem;letter-spacing:.13em;font-weight:900;margin-bottom:3px}
+.personal-goal h2{color:#fff;font-size:clamp(1.15rem,2.4vw,1.55rem);line-height:1.25;margin:0;overflow-wrap:anywhere}
+.personal-goal p{color:#d8e9e4;font-size:.8rem;margin:5px 0 0;line-height:1.5}
+.goal-edit{background:#ffffff18;border:1px solid #ffffff58;color:#fff;border-radius:10px;padding:9px 12px;font-size:.77rem;font-weight:800;white-space:nowrap;cursor:pointer}
+.goal-edit:hover{background:#ffffff2d}
+.balance .progress-row{display:flex;margin-top:16px;color:#506b70}
+.balance .track{display:block;background:#e5eee9;margin:7px 0 14px;height:10px}
+.balance .track>div{background:linear-gradient(90deg,#087b59,#2fc292)}
+.milestone-labels{display:flex;justify-content:space-between;gap:4px;margin-top:22px;color:#748c8c;font-size:.6rem;font-weight:800;letter-spacing:.04em}
+.wallet-chart-row{margin-top:12px;padding-top:18px}
+.balance-bottom span:first-child{color:var(--brand-forest);font-weight:800}
+.next-card{background:#edf5fc;border-color:#d1e3f3}
+.next-card .eyebrow,.next-card .number{color:#284f8c}
+.next-card .primary{background:#315fae}
+.next-card .primary:hover{background:#244d98}
+.timing-cue{display:inline-block;margin:0 0 18px!important;padding:8px 11px;border-radius:9px;background:#ffffffbd;color:#315c88!important;font-size:.75rem!important;font-weight:700;line-height:1.4}
+.mode-weekly .next-card{background:#edf4fd;border-color:#d1e1f5}
+.mode-daily .next-card{background:#fff5eb;border-color:#f0dfcc}
+.celebrate{background:#fff6df;border:1px solid #eddbab;color:#654814;border-radius:16px}
+.celebrate strong{color:#654814}
+.wallet-bottom-nav button.active,.wallet-sidebar button.active{color:var(--brand-green)}
+.topbar .text-button:focus-visible,.goal-edit:focus-visible,.purpose-suggestions button:focus-visible{outline:3px solid #e5b54f;outline-offset:2px}
+@media(max-width:760px){
+  .screen-welcome .login-intro{padding:24px 20px;border-radius:22px}
+  .screen-welcome .login-intro:after{font-size:3rem;right:13px;top:3px}
+  .personal-goal{padding:17px;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .goal-emblem{width:42px;height:42px;font-size:1.35rem}
+  .goal-edit{margin-left:54px}
+  .milestone-labels{font-size:.54rem}
+}

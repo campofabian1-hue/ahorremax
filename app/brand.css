@@ -1,0 +1,13 @@
+/* Original Ahorremax wordmark supplied by the owner. */
+.brand.ahorremax-lockup{display:block;width:220px;height:62px;overflow:hidden;flex:0 0 auto}
+.ahorremax-lockup img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:none}
+.wallet-side-logo .ahorremax-lockup{width:210px;height:59px}
+.wallet-side-logo .ahorremax-lockup img{width:100%;height:100%;filter:none}
+.wallet-avatar{background:#f2ebff;padding:0;overflow:hidden}
+.wallet-avatar img{display:block;width:100%;height:100%;object-fit:contain}
+@media(max-width:760px){
+  .topbar{background:#f6f2ff;border-bottom:1px solid #e7dcff}
+  .topbar .ahorremax-lockup{width:175px;height:49px}
+  .topbar .ahorremax-lockup img{width:100%;height:100%;filter:none;border-radius:0;box-shadow:none;object-fit:cover}
+  .topbar .text-button{color:#5336a0;background:#fff;border-color:#ded4f6}
+}

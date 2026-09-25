@@ -1,0 +1,10 @@
+.DS_Store
+firebase-debug.log
+node_modules/
+docs/
+entregables/
+output/
+papa-rediseno/
+*.zip
+__pycache__/
+.firebase/
