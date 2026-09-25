@@ -2,6 +2,10 @@
 
 Aplicación web instalable para registrar manualmente el ahorro hacia una meta de $1.000.000 COP. Ofrece tres recorridos: 26 semanas, 200 casillas flexibles y 40 días. El dinero permanece donde la persona decida; Ahorremax no accede a cuentas bancarias ni ejecuta transferencias.
 
+**Abrir e instalar:** https://campofabian1-hue.github.io/ahorremax/
+
+**Paquete para otro sitio web:** [descargar Ahorremax-v5-cuentas-historial.zip](https://github.com/campofabian1-hue/ahorremax/releases/download/v0.5.0/Ahorremax-v5-cuentas-historial.zip). Extrae todo el contenido y sube los archivos a una carpeta del sitio, manteniendo `index.html` en esa carpeta. Autoriza el dominio en Firebase Authentication para que funcione el acceso con Google.
+
 ## Qué guarda cada cuenta
 
 Firebase Authentication identifica a cada persona. Cloud Firestore conserva su plan activo en `users/{uid}/plans/active` y un registro de operaciones en `users/{uid}/operations/{operationId}`. Crear un plan, registrar o corregir un aporte y cambiar la meta escriben el plan y un evento de actividad en una sola transacción. Las operaciones no se pueden editar ni eliminar desde el cliente. Las reglas comprueban el UID, la estructura de los datos y que ambos documentos se escriban juntos.

@@ -36,11 +36,11 @@ manifest=(ROOT/'app/manifest.webmanifest').read_text().replace('"/app/"','"./"')
 sw=(ROOT/'app/sw.js').read_text()
 sw=sw.replace("'./main.mjs?v=9','./cloud.mjs','./firebase-config.mjs'", "'./app.js'").replace(",'../src/savings.mjs'",'')
 (OUT/'sw.js').write_text(sw)
-(OUT/'LEEME.txt').write_text('''AHORREMAX — REDISEÑO DE LOS TRES RETOS
+(OUT/'LEEME.txt').write_text('''AHORREMAX — TRES RETOS DE AHORRO Y REGISTRO PERSONAL
 
 Extrae el ZIP antes de usarlo.
 
-EN TU COMPUTADOR: abre index.html para explorar los tres retos en modo de prueba. Los aportes de la prueba se borran al recargar. El acceso con Google y el guardado real requieren un servidor web.
+EN TU COMPUTADOR: abre index.html para explorar los tres retos en modo de prueba. Los aportes de la prueba se borran al recargar. El acceso con Google y el guardado real requieren HTTPS o un servidor local autorizado.
 
 EN LA APP: elige un reto, escribe para qué quieres ahorrar, indica dónde guardarás el dinero y comienza. Puedes editar el nombre de la meta después. La barra y los hitos muestran el avance registrado manualmente; la app no verifica depósitos bancarios.
 
@@ -48,9 +48,11 @@ IDENTIDAD: se mantiene intacto el logo original morado y turquesa de Ahorremax. 
 
 EN TU HOSTING: sube TODO el contenido de este ZIP a una carpeta propia, por ejemplo public_html/ahorremax/. El index.html debe quedar directamente en esa carpeta. Abre https://TU-DOMINIO/ahorremax/. No reemplaces la página principal. No es un plugin de WordPress.
 
-CUENTAS: Google está configurado en Firebase, pero debes autorizar el dominio final en Firebase Authentication. Facebook requiere completar la configuración de Meta y Firebase. La versión actual guarda un reto activo por persona; no cambia un plan ya registrado al explorar otros métodos.
+CUENTAS: Google usa Firebase Authentication. Para un dominio distinto del publicado en GitHub Pages, autoriza ese dominio en Firebase Authentication antes de usarlo. Facebook requiere completar la configuración de Meta y Firebase. La versión actual guarda un reto activo por persona; no cambia un plan ya registrado al explorar otros métodos.
 
-La instalación como aplicación móvil requiere HTTPS. Antes de abrirla a clientes, verifica en el dominio final el acceso con Google, la escritura y lectura de aportes, el cierre y regreso de sesión, y la instalación en teléfono. La prueba de escritura real y el aislamiento entre dos usuarios siguen pendientes. Presupuestos, viajes y proyectos son módulos futuros: este paquete rediseña los tres retos de ahorro actuales.
+HISTORIAL: cada cuenta conserva sus aportes vigentes y, desde esta versión, un registro privado de creación del plan, aportes, correcciones y cambios de meta. Un aporte y su registro de actividad se guardan juntos. La prueba sin cuenta no genera historial persistente.
+
+La instalación como aplicación móvil requiere HTTPS. En Android, usa el botón de instalación o la opción del navegador. En iPhone, usa Compartir > Agregar a pantalla de inicio. Antes de abrirla a clientes en otro dominio, verifica allí el acceso con Google, la escritura y lectura de aportes, el cierre y regreso de sesión, y la instalación en teléfono. Presupuestos, viajes y proyectos son módulos futuros: este paquete contiene los tres retos de ahorro actuales.
 ''')
 shutil.copy2(ROOT/'SISTEMA_VISUAL.md',OUT/'SISTEMA_VISUAL.md')
 zip_path=ROOT/'entregables/Ahorremax-v5-cuentas-historial.zip'
