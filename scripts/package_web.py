@@ -29,12 +29,18 @@ for name in ['weekly.png', 'flexible.png', 'daily.png']:
 (OUT/'recursos-originales').mkdir()
 for name in ['weekly.png', 'flexible.png', 'daily.png']:
     shutil.copy2(ROOT/'app/assets/icons/original'/name, OUT/'recursos-originales'/name)
-html=(ROOT/'app/index.html').read_text().replace('<script type="module" src="./main.mjs?v=10"></script>', '<script defer src="./app.js"></script>')
+(OUT/'assets/campaign').mkdir()
+(OUT/'recursos-originales/campana').mkdir()
+for name in ['weekly', 'flexible', 'daily']:
+    shutil.copy2(ROOT/'app/assets/campaign'/f'{name}.webp', OUT/'assets/campaign'/f'{name}.webp')
+    shutil.copy2(ROOT/'app/assets/campaign/original'/f'{name}.png', OUT/'recursos-originales/campana'/f'{name}.png')
+shutil.copy2(ROOT/'app/assets/campaign/PROMPTS.md', OUT/'recursos-originales/campana/PROMPTS.md')
+html=(ROOT/'app/index.html').read_text().replace('<script type="module" src="./main.mjs?v=11"></script>', '<script defer src="./app.js"></script>')
 (OUT/'index.html').write_text(html)
 manifest=(ROOT/'app/manifest.webmanifest').read_text().replace('"/app/"','"./"')
 (OUT/'manifest.webmanifest').write_text(manifest)
 sw=(ROOT/'app/sw.js').read_text()
-sw=sw.replace("'./main.mjs?v=10','./cloud.mjs','./firebase-config.mjs'", "'./app.js'").replace(",'../src/savings.mjs'",'')
+sw=sw.replace("'./main.mjs?v=11','./cloud.mjs','./firebase-config.mjs'", "'./app.js'").replace(",'../src/savings.mjs'",'')
 (OUT/'sw.js').write_text(sw)
 (OUT/'LEEME.txt').write_text('''AHORREMAX — TRES RETOS DE AHORRO Y REGISTRO PERSONAL
 
