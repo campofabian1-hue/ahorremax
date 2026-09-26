@@ -1,6 +1,6 @@
 """Package the app as a classic script: local demo and static hosting."""
 from pathlib import Path
-import re, shutil, zipfile
+import hashlib, re, shutil, zipfile
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'entregables' / 'ahorremax-web-redisenado'
 if OUT.exists(): shutil.rmtree(OUT)
@@ -35,12 +35,18 @@ for name in ['weekly', 'flexible', 'daily']:
     shutil.copy2(ROOT/'app/assets/campaign'/f'{name}.webp', OUT/'assets/campaign'/f'{name}.webp')
     shutil.copy2(ROOT/'app/assets/campaign/original'/f'{name}.png', OUT/'recursos-originales/campana'/f'{name}.png')
 shutil.copy2(ROOT/'app/assets/campaign/PROMPTS.md', OUT/'recursos-originales/campana/PROMPTS.md')
-html=(ROOT/'app/index.html').read_text().replace('<script type="module" src="./main.mjs?v=11"></script>', '<script defer src="./app.js"></script>')
-(OUT/'index.html').write_text(html)
+bundle_version=hashlib.sha256(bundle.encode()).hexdigest()[:12]
+script_url=f'./app.js?v={bundle_version}'
+html=(ROOT/'app/index.html').read_text().replace('<script type="module" src="./main.mjs?v=11"></script>', f'<script defer src="{script_url}"></script>')
 manifest=(ROOT/'app/manifest.webmanifest').read_text().replace('"/app/"','"./"')
 (OUT/'manifest.webmanifest').write_text(manifest)
 sw=(ROOT/'app/sw.js').read_text()
-sw=sw.replace("'./main.mjs?v=11','./cloud.mjs','./firebase-config.mjs'", "'./app.js'").replace(",'../src/savings.mjs'",'')
+sw=sw.replace("'./main.mjs?v=11','./cloud.mjs','./firebase-config.mjs'", f"'{script_url}'").replace(",'../src/savings.mjs'",'')
+for name in ['styles.css','theme.css','wallet-theme.css','brand.css','motivation.css','studio.css']:
+    version=hashlib.sha256((OUT/name).read_bytes()).hexdigest()[:12]
+    html=html.replace(f'./{name}',f'./{name}?v={version}')
+    sw=sw.replace(f"'./{name}'",f"'./{name}?v={version}'")
+(OUT/'index.html').write_text(html)
 (OUT/'sw.js').write_text(sw)
 (OUT/'LEEME.txt').write_text('''AHORREMAX — TRES RETOS DE AHORRO Y REGISTRO PERSONAL
 
