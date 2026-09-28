@@ -1,6 +1,6 @@
 # Ahorremax
 
-Aplicación web instalable para registrar manualmente el ahorro hacia una meta de $1.000.000 COP. Ofrece tres recorridos: 26 semanas, 200 casillas flexibles y 40 días. El dinero permanece donde la persona decida; Ahorremax no accede a cuentas bancarias ni ejecuta transferencias.
+Aplicación web instalable para registrar manualmente el ahorro hacia una meta de $1.000.000 COP. Ofrece tres recorridos: 26 semanas, 200 días con 200 casillas flexibles y 40 días. El dinero permanece donde la persona decida; Ahorremax no accede a cuentas bancarias ni ejecuta transferencias.
 
 **Abrir e instalar:** https://campofabian1-hue.github.io/ahorremax/
 
