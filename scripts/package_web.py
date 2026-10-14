@@ -14,7 +14,7 @@ def body(path):
 
 bundle = "'use strict';\n(()=>{\n" + body('src/savings.mjs')
 bundle += '\nconst cloud=(()=>{\n' + body('app/firebase-config.mjs') + body('app/cloud.mjs')
-bundle += '\nreturn {providersReady,configured,initialize,usesRedirect,signIn,signOut,watch,save,listOperations,errorMessage};\n})();\n'
+bundle += '\nreturn {providersReady,configured,initialize,usesRedirect,signIn,signOut,watchPlans,save,listOperations,errorMessage};\n})();\n'
 bundle += body('app/main.mjs') + '\n})();\n'
 (OUT / 'app.js').write_text(bundle)
 for name in ['styles.css','theme.css','wallet-theme.css','brand.css','motivation.css','studio.css','mark.svg','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-512-maskable.png']:
@@ -60,14 +60,14 @@ IDENTIDAD: se mantiene intacto el logo original morado y turquesa de Ahorremax. 
 
 EN TU HOSTING: sube TODO el contenido de este ZIP a una carpeta propia, por ejemplo public_html/ahorremax/. El index.html debe quedar directamente en esa carpeta. Abre https://TU-DOMINIO/ahorremax/. No reemplaces la página principal. No es un plugin de WordPress.
 
-CUENTAS: Google usa Firebase Authentication. Para un dominio distinto del publicado en GitHub Pages, autoriza ese dominio en Firebase Authentication antes de usarlo. Facebook requiere completar la configuración de Meta y Firebase. La versión actual guarda un reto activo por persona; no cambia un plan ya registrado al explorar otros métodos.
+CUENTAS: Google usa Firebase Authentication. Para un dominio distinto de fcfinanzas.com, autoriza ese dominio en Firebase Authentication antes de usarlo y comprueba el acceso en móvil. Facebook requiere completar la configuración de Meta y Firebase. Cada cuenta puede guardar los tres retos por separado. Los planes existentes conservan sus aportes.
 
 HISTORIAL: cada cuenta conserva sus aportes vigentes y, desde esta versión, un registro privado de creación del plan, aportes, correcciones y cambios de meta. Un aporte y su registro de actividad se guardan juntos. La prueba sin cuenta no genera historial persistente.
 
 La instalación como aplicación móvil requiere HTTPS. En Android, usa el botón de instalación o la opción del navegador. En iPhone, usa Compartir > Agregar a pantalla de inicio. Antes de abrirla a clientes en otro dominio, verifica allí el acceso con Google, la escritura y lectura de aportes, el cierre y regreso de sesión, y la instalación en teléfono. Presupuestos, viajes y proyectos son módulos futuros: este paquete contiene los tres retos de ahorro actuales.
 ''')
 shutil.copy2(ROOT/'SISTEMA_VISUAL.md',OUT/'SISTEMA_VISUAL.md')
-zip_path=ROOT/'entregables/Ahorremax-v6-publicacion.zip'
+zip_path=ROOT/'entregables/Ahorremax-v7-tres-retos.zip'
 with zipfile.ZipFile(zip_path,'w',zipfile.ZIP_DEFLATED) as z:
     for p in sorted(OUT.rglob('*')):
         if p.is_file(): z.write(p,p.relative_to(OUT))

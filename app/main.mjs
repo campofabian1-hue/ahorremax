@@ -9,7 +9,8 @@ const modes = {
   daily: { name: 'Reto Turbo', tagline: 'Pon a prueba tu constancia y dale velocidad a tu ahorro.', duration: '40 días', icon: '↗', description: 'Empieza con $6.000 diarios y suma $1.000 cada día hasta llegar a $45.000.', unit: 'Día' },
 };
 const places = { account: ['Cuenta de ahorros', 'En la entidad que tú elijas', '▤'], pocket: ['Bolsillo digital', 'Nequi, Daviplata, Lulo u otro', '▣'], cash: ['Efectivo en casa', 'Alcancía, sobre o debajo del colchón', '⌂'] };
-let screen = 'welcome', mode = 'weekly', infoMode = 'weekly', place = 'pocket', placeName = 'Nequi', purpose = '', startDate = today(), entries = [], tab = 'plan', filter = 'all', selected = new Set();
+let screen = 'welcome', mode = 'weekly', planId = 'weekly', place = 'pocket', placeName = 'Nequi', purpose = '', startDate = today(), entries = [], tab = 'plan', filter = 'all', selected = new Set();
+let plansByMode = { weekly: null, flexible: null, daily: null };
 const demoEntriesByMode = { weekly: [], flexible: [], daily: [] };
 const demoProfilesByMode = { weekly: null, flexible: null, daily: null };
 let timer;
@@ -18,7 +19,7 @@ let user=null, revision=0, busy=false, unwatch=null, demo=true, syncError=false,
 let activity=[], activityCursor=null, activityMore=false, activityLoading=false, activityLoaded=false, activityError='', activityRequest=0;
 let installPrompt=null;
 function snapshot(nextEntries=entries){return {mode,place,placeName,purpose,startDate,entries:nextEntries};}
-function restore(data){
+function validatePlan(data){
   if(!data||!Object.hasOwn(modes,data.mode)||!Object.hasOwn(places,data.place)||!Array.isArray(data.entries)||data.entries.length>200||!Number.isSafeInteger(data.revision)||data.revision<1||!/^\d{4}-\d{2}-\d{2}$/.test(data.startDate)||!Number.isFinite(Date.parse(data.startDate)))throw new Error('No se pudo validar tu plan guardado.');
   const plan=createPlan(data.mode), seen=new Set(), entryIds=new Set();
   for(const entry of data.entries){
@@ -27,12 +28,16 @@ function restore(data){
     for(const id of entry.ids){const item=plan.find(p=>p.id===id);if(!item||seen.has(id))throw new Error('Hay casillas duplicadas en tu historial.');seen.add(id);amount+=item.amount;}
     if(amount!==entry.amount)throw new Error('El monto de un registro no coincide con sus casillas.');
   }
+}
+function restore(data){
+  validatePlan(data);
   mode=data.mode;place=data.place;placeName=String(data.placeName||'').slice(0,60);purpose=String(data.purpose||'').slice(0,80);startDate=data.startDate;entries=data.entries;revision=data.revision;
 }
 async function persist(nextEntries,operation){
   if(busy||syncError) return false;
   busy=true;
-  try {if(!demo)await cloud.save(snapshot(nextEntries),revision,operation);entries=nextEntries;if(demo)demoEntriesByMode[mode]=nextEntries;else {hasPlan=true;revision+=1;if(tab==='history')void loadActivity(true);}return true;}
+  const next=snapshot(nextEntries),expectedRevision=revision;
+  try {if(!demo)await cloud.save(next,expectedRevision,operation,planId);entries=nextEntries;if(demo)demoEntriesByMode[mode]=nextEntries;else {hasPlan=true;revision=expectedRevision+1;plansByMode[mode]={...next,revision,planId};if(tab==='history')void loadActivity(true);}return true;}
   catch(error){notify(cloud.errorMessage(error));return false;}
   finally{busy=false;}
 }
@@ -66,11 +71,17 @@ function restoreDemoProfile(nextMode) {
   if (profile) ({ place, placeName, purpose, startDate } = profile);
   else { place = 'pocket'; placeName = 'Nequi'; purpose = ''; startDate = today(); }
 }
+function selectAccountMode(nextMode){
+  mode=nextMode;selected.clear();filter='all';tab='plan';
+  const saved=plansByMode[nextMode];
+  if(saved){restore(saved);planId=saved.planId;hasPlan=true;screen='dashboard';}
+  else{planId=nextMode;hasPlan=false;entries=[];revision=0;place='pocket';placeName='Nequi';purpose='';startDate=today();screen='setup';}
+}
 function nextMilestone(saved) { return [250000, 500000, 750000, 1000000].find(value => saved < value) || null; }
 function brandLogo() { return `<div class="brand ahorremax-lockup"><img src="./assets/ahorremax-logo.png" alt="Ahorremax"></div>`; }
 function header() { return `<header class="topbar">${brandLogo()}${screen === 'welcome' ? '<span class="pill">Tu primer millón, a tu manera</span>' : `<button class="text-button" data-action="exit">${demo?'Salir de la demo':'Cerrar sesión'}</button>`}</header>`; }
 function render() {
-  root.innerHTML = `${screen !== 'welcome' ? `<div class="demo-banner">${demo?'Demo · Aportes de prueba, no se guardan al recargar.':syncError?'Sin sincronización. No registres aportes hasta reconectar.':`Cuenta de ${escape(user?.displayName||user?.email||'usuario')} · Historial en la nube`}</div>` : ''}<main class="shell mode-${mode} screen-${screen}">${screen !== 'welcome' ? walletNavigation() : ''}${header()}${screen === 'welcome' ? welcome() : screen === 'plans' ? plans() : screen === 'setup' ? setup() : screen === 'goal' ? goalEditor() : screen === 'method-info' ? methodInfo() : dashboard()}<footer class="footer">${installAvailable()?'<button class="text-button footer-install" data-action="install">Instalar Ahorremax</button>':''}Ahorremax · Montos en pesos colombianos (COP)</footer></main>${screen !== 'welcome' ? walletBottomNavigation() : ''}`;
+  root.innerHTML = `${screen !== 'welcome' ? `<div class="demo-banner">${demo?'Demo · Aportes de prueba, no se guardan al recargar.':syncError?'Sin sincronización. No registres aportes hasta reconectar.':`Cuenta de ${escape(user?.displayName||user?.email||'usuario')} · Historial en la nube`}</div>` : ''}<main class="shell mode-${mode} screen-${screen}">${screen !== 'welcome' ? walletNavigation() : ''}${header()}${screen === 'welcome' ? welcome() : screen === 'plans' ? plans() : screen === 'setup' ? setup() : screen === 'goal' ? goalEditor() : dashboard()}<footer class="footer">${installAvailable()?'<button class="text-button footer-install" data-action="install">Instalar Ahorremax</button>':''}Ahorremax · Montos en pesos colombianos (COP)</footer></main>${screen !== 'welcome' ? walletBottomNavigation() : ''}`;
 }
 function walletNavigation() {
   return `<aside class="wallet-sidebar" aria-label="Navegación de Ahorremax"><div class="wallet-side-logo">${brandLogo()}</div><p class="wallet-side-section">MI AHORRO</p><button data-action="home" class="${screen==='dashboard'&&tab==='plan'?'active':''}"><span>◫</span> Resumen</button><button data-action="plans" class="${screen==='plans'?'active':''}"><span>▦</span> Mis retos</button><button data-action="history" class="${tab==='history'?'active':''}"><span>◷</span> Movimientos</button><div class="wallet-side-footer"><span class="wallet-avatar"><img src="./assets/ahorremax-mark.png" alt=""></span><div><strong>Ahorremax</strong><small>${demo?'Exploración temporal':'Mi cuenta de ahorro'}</small></div></div></aside>`;
@@ -86,17 +97,11 @@ function plans() {
     flexible: { number: '02', label: '200 DÍAS · A TU RITMO', headline: modes.flexible.name, text: modes.flexible.tagline, visual: '<div class="flexible-preview" aria-hidden="true"><i>☺</i><i>♥</i><i>♫</i><i>☀</i><i>▲</i><i>+</i><i>+</i><i>+</i><i>+</i><i>+</i></div>', stat: '200 días · 200 casillas · $1.195.000' },
     daily: { number: '03', label: 'RETO INTENSIVO', headline: modes.daily.name, text: modes.daily.tagline, visual: '<div class="daily-preview" aria-hidden="true"><i style="height:30%"></i><i style="height:41%"></i><i style="height:52%"></i><i style="height:64%"></i><i style="height:77%"></i><i style="height:88%"></i><i style="height:100%"></i></div>', stat: '40 aportes · $1.020.000' }
   };
-  return `<section class="section-heading challenge-heading"><div><p class="eyebrow">Elige tu camino</p><h1>Tres formas de llegar a tu millón.</h1><p class="muted">Cada reto tiene un ritmo y una forma distinta de registrar tus ahorros.</p></div></section><div class="challenge-grid">${order.map(key=>{const d=details[key];const active=!demo&&hasPlan&&mode===key;const ids=demo?demoEntriesByMode[key].flatMap(e=>e.ids):(active?completed():[]);const summary=summarize(key,ids);return `<button class="challenge-card challenge-${key} ${active?'is-active':''}" data-mode="${key}" aria-label="${active?'Continuar':'Elegir'} ${modes[key].name}, ${d.stat}"><span class="challenge-top"><span class="challenge-number">${d.number}</span><span class="challenge-label">${active?'MI RETO ACTIVO':d.label}</span></span><div class="challenge-visual campaign-visual"><img src="./assets/campaign/${key}.webp" alt="" width="960" height="640" decoding="async" loading="lazy"></div><div class="challenge-copy"><h2 class="campaign-title">${d.headline}</h2><p>${d.text}</p></div><div class="challenge-foot"><span>${d.stat}</span><strong>${active?'Continuar · '+money(summary.saved):summary.saved?money(summary.saved)+' ahorrados':demo?'Explorar reto':hasPlan?'Conocer método':'Elegir reto'} <span aria-hidden="true">→</span></strong></div></button>`}).join('')}</div><p class="challenge-note">${!demo&&hasPlan?'Tu cuenta conserva un reto activo. Esta versión guarda un plan por persona; los otros métodos se muestran para comparar.':'Los tres recorridos superan $1.000.000. La meta se celebra al llegar a esa cifra; puedes seguir hasta completar cada plan.'}</p>`;
-}
-function methodInfo() {
-  const selectedMode = infoMode;
-  const plan = createPlan(selectedMode);
-  const explanations = {
-    weekly: 'Separas dinero una vez por semana. El aporte sube $1.000 cada semana, desde $26.000 hasta $51.000.',
-    flexible: 'El plan tiene 200 casillas. Si marcas una cada día, lo completas en 200 días; puedes combinar varias y terminar antes.',
-    daily: 'Separas dinero cada día durante 40 días. Comienzas con $6.000 y sumas $1.000 al aporte diario anterior.'
-  };
-  return `<button class="text-button" data-action="plans">← Ver los tres retos</button><section class="method-info info-${selectedMode}"><p class="eyebrow">${modes[selectedMode].duration}</p><h1>${modes[selectedMode].name}</h1><p>${explanations[selectedMode]}</p><div class="method-info-numbers"><div><span>Primer aporte</span><strong>${money(plan[0].amount)}</strong></div><div><span>${selectedMode==='flexible'?'Casilla mayor':'Último aporte'}</span><strong>${money(selectedMode==='flexible'?Math.max(...plan.map(item=>item.amount)):plan.at(-1).amount)}</strong></div><div><span>Plan completo</span><strong>${money(summarize(selectedMode).planTotal)}</strong></div></div><p class="small muted">Tu reto activo es ${modes[mode].name}. Sus aportes permanecen guardados; esta versión lleva un reto por cuenta.</p><button class="primary" data-action="home">Volver a mi reto →</button></section>`;
+  return `<section class="section-heading challenge-heading"><div><p class="eyebrow">Elige tu camino</p><h1>Tres formas de llegar a tu millón.</h1><p class="muted">Cada reto tiene su propio avance. Puedes iniciar uno o los tres.</p></div></section><div class="challenge-grid">${order.map(key=>{
+    const d=details[key],saved=!demo&&plansByMode[key],active=Boolean(saved),ids=demo?demoEntriesByMode[key].flatMap(e=>e.ids):saved?.entries.flatMap(e=>e.ids)||[];
+    const summary=summarize(key,ids);
+    return `<button class="challenge-card challenge-${key} ${active?'is-active':''}" data-mode="${key}" aria-label="${active?'Continuar':'Elegir'} ${modes[key].name}, ${d.stat}"><span class="challenge-top"><span class="challenge-number">${d.number}</span><span class="challenge-label">${active?'RETO EN CURSO':d.label}</span></span><div class="challenge-visual campaign-visual"><img src="./assets/campaign/${key}.webp" alt="" width="960" height="640" decoding="async" loading="lazy"></div><div class="challenge-copy"><h2 class="campaign-title">${d.headline}</h2><p>${d.text}</p></div><div class="challenge-foot"><span>${d.stat}</span><strong>${active?'Continuar · '+money(summary.saved):summary.saved?money(summary.saved)+' ahorrados':demo?'Explorar reto':'Comenzar reto'} <span aria-hidden="true">→</span></strong></div></button>`;
+  }).join('')}</div><p class="challenge-note">Los tres recorridos superan $1.000.000. Cada plan conserva sus aportes y su meta por separado.</p>`;
 }
 function purposeInput() { return `<label for="purpose">¿Para qué quieres ahorrar $1.000.000?</label><p class="field-help">Ponle nombre a lo que quieres lograr. Lo verás cada vez que avances.</p><input id="purpose" name="purpose" maxlength="80" minlength="3" required placeholder="Ej.: mi fondo de emergencia" value="${escape(purpose)}" autocomplete="off"><div class="purpose-suggestions" aria-label="Ideas para tu meta"><button type="button" data-purpose="Mi fondo de emergencia">Fondo de emergencia</button><button type="button" data-purpose="Mis estudios">Estudios</button><button type="button" data-purpose="Un viaje especial">Un viaje</button><button type="button" data-purpose="Mi emprendimiento">Emprendimiento</button></div>`; }
 function setup() { return `<button class="text-button" data-action="plans">← Cambiar método</button><section class="section-heading"><div><p class="eyebrow">Tu reto, tu razón</p><h1>¿Qué hará posible tu millón?</h1><p class="muted">Una meta concreta te ayuda a recordar por qué empezaste.</p></div><span class="steps">Paso 2 de 2</span></section><form id="setup-form" class="form-card">${purposeInput()}<label>¿Dónde vas a guardar tu ahorro?</label><div class="place-options">${Object.entries(places).map(([key,p])=>`<button type="button" class="place" data-place="${key}" aria-pressed="${place===key}"><span aria-hidden="true">${p[2]}</span><span><strong>${p[0]}</strong><small>${p[1]}</small></span></button>`).join('')}</div>${place!=='cash'?`<label for="place-name">${place==='pocket'?'Nombre del bolsillo o entidad':'Nombre de la entidad'}</label><input id="place-name" name="placeName" maxlength="60" required value="${escape(placeName)}" placeholder="${place==='pocket'?'Por ejemplo, Nequi':'Por ejemplo, tu banco'}" autocomplete="off">`:''}<label for="start">Fecha de inicio</label><input id="start" name="start" type="date" required value="${startDate}"><div class="summary-strip"><span>${modes[mode].name} · ${modes[mode].duration}</span><strong>${money(summarize(mode).planTotal)}</strong></div><button class="primary" type="submit">${demo?'Comenzar mi plan de prueba':'Crear y guardar mi plan'} →</button></form>`; }
@@ -143,7 +148,7 @@ function activityLog(){
     const date=item.createdAt?new Intl.DateTimeFormat('es-CO',{dateStyle:'medium',timeStyle:'short'}).format(new Date(item.createdAt)):'Fecha pendiente';
     const amount=item.amount?(item.type==='contribution_corrected'?'−':'· ')+money(item.amount):'';
     const detail=item.type==='goal_updated'?' · '+escape(item.purpose):item.ids?.length?' · '+item.ids.length+' casilla'+(item.ids.length===1?'':'s'):'';
-    return `<div class="activity-row"><div class="activity-mark" aria-hidden="true">${item.type==='contribution_corrected'?'↶':item.type==='contribution_added'?'+':'✓'}</div><div><strong>${title}</strong><p>${date}${detail}</p></div><span>${amount}</span></div>`;
+    return `<div class="activity-row"><div class="activity-mark" aria-hidden="true">${item.type==='contribution_corrected'?'↶':item.type==='contribution_added'?'+':'✓'}</div><div><strong>${title}</strong><p>${escape(modes[item.mode]?.name||'Reto')} · ${date}${detail}</p></div><span>${amount}</span></div>`;
   }).join('');
   return `<section class="activity-section"><div class="activity-heading"><div><p class="eyebrow">Registro de actividad</p><h2>Tus operaciones</h2></div><p>Conservamos los aportes, las correcciones y los cambios de meta de tu cuenta.</p></div>${rows||(!activityLoading&&activityLoaded?'<div class="empty">No hay operaciones registradas desde que se activó este historial.</div>':'')}${activityError?`<p class="activity-error" role="alert">${escape(activityError)}</p>`:''}${activityLoading?'<p class="activity-loading" role="status">Cargando operaciones…</p>':''}${activityMore&&!activityLoading?'<button class="secondary activity-more" data-action="more-activity">Ver operaciones anteriores</button>':''}</section>`;
 }
@@ -176,8 +181,7 @@ root.addEventListener('click',async event=>{
   if(button.dataset.mode){
     const nextMode=button.dataset.mode;
     if(!demo){
-      if(hasPlan){screen=nextMode===mode?'dashboard':'method-info';infoMode=nextMode;tab='plan';render();window.scrollTo(0,0);return;}
-      mode=nextMode;screen='setup';render();window.scrollTo(0,0);return;
+      selectAccountMode(nextMode);render();window.scrollTo(0,0);return;
     }
     demoEntriesByMode[mode]=entries;
     mode=nextMode;entries=demoEntriesByMode[mode];restoreDemoProfile(mode);
@@ -241,12 +245,26 @@ cloud.initialize(async account=>{
   const previousUser=user;
   unwatch?.();unwatch=null;user=account;
   if(!account&&!previousUser){return;}
-  entries=[];selected.clear();revision=0;syncError=false;hasPlan=false;
+  mode='weekly';planId='weekly';entries=[];selected.clear();revision=0;syncError=false;hasPlan=false;plansByMode={weekly:null,flexible:null,daily:null};
   activityRequest++;activity=[];activityCursor=null;activityMore=false;activityLoading=false;activityLoaded=false;activityError='';
   if(!account){demo=true;screen='welcome';render();return;}
   demo=false;screen='loading';root.innerHTML='<main class="shell"><h1>Recuperando tu avance…</h1></main>';
   let initialSnapshot=true;
-  unwatch=cloud.watch(data=>{try{const priorRevision=revision;if(data){restore(data);hasPlan=true;if(initialSnapshot)screen='plans';}else{hasPlan=false;screen='plans';}initialSnapshot=false;syncError=false;render();if(tab==='history'&&revision!==priorRevision)void loadActivity(true);}catch(error){syncError=true;screen='welcome';render();notifyPersistent(error.message);}},error=>{syncError=true;screen='welcome';render();notifyPersistent(cloud.errorMessage(error));});
+  unwatch=cloud.watchPlans(data=>{try{
+    const priorRevision=revision;
+    for(const saved of Object.values(data))if(saved)validatePlan(saved);
+    plansByMode=data;
+    if(initialSnapshot){
+      const first=Object.keys(modes).find(key=>data[key])||'weekly';
+      mode=first;
+      if(data[first]){restore(data[first]);planId=data[first].planId;hasPlan=true;}
+      screen='plans';initialSnapshot=false;
+    }else if(hasPlan&&data[mode]){
+      restore(data[mode]);planId=data[mode].planId;
+    }
+    syncError=false;render();
+    if(tab==='history'&&revision!==priorRevision)void loadActivity(true);
+  }catch(error){syncError=true;screen='welcome';render();notifyPersistent(error.message);}},error=>{syncError=true;screen='welcome';render();notifyPersistent(cloud.errorMessage(error));});
 }).catch(error=>notifyPersistent(cloud.errorMessage(error)));
 
 window.addEventListener?.('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;});

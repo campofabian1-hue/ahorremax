@@ -28,10 +28,35 @@ export async function signIn(provider) {
   return authApi.signInWithPopup(auth,p);
 }
 export async function signOut(){ if(auth)await authApi.signOut(auth); }
-function ref(){if(!auth?.currentUser)throw new Error('Inicia sesión para guardar tu avance.');return storeApi.doc(db,'users',auth.currentUser.uid,'plans','active');}
-export function watch(onData,onError){return storeApi.onSnapshot(ref(),{includeMetadataChanges:true},snap=>{if(!snap.metadata.hasPendingWrites)onData(snap.exists()?snap.data():null);},onError);}
-export async function save(data,expectedRevision,operation){
-  const document=ref();
+const planIds=['active','weekly','flexible','daily'];
+function ref(planId){
+  if(!auth?.currentUser)throw new Error('Inicia sesión para guardar tu avance.');
+  if(!planIds.includes(planId))throw new Error('El método de ahorro no es válido.');
+  return storeApi.doc(db,'users',auth.currentUser.uid,'plans',planId);
+}
+export function watchPlans(onData,onError){
+  const values={},ready=new Set();
+  const unsubscribers=planIds.map(planId=>storeApi.onSnapshot(ref(planId),{includeMetadataChanges:true},snap=>{
+    if(snap.metadata.hasPendingWrites)return;
+    values[planId]=snap.exists()?snap.data():null;
+    ready.add(planId);
+    if(ready.size!==planIds.length)return;
+    if(values.active&&!planIds.slice(1).includes(values.active.mode)){
+      onError(new Error('El reto anterior no tiene una modalidad válida.'));return;
+    }
+    const plans={};
+    for(const mode of planIds.slice(1)){
+      const current=values[mode];
+      if(current&&current.mode!==mode){onError(new Error('Un reto guardado no coincide con su modalidad.'));return;}
+      plans[mode]=current?{...current,planId:mode}:values.active?.mode===mode?{...values.active,planId:'active'}:null;
+    }
+    onData(plans);
+  },onError));
+  return ()=>unsubscribers.forEach(unsubscribe=>unsubscribe());
+}
+export async function save(data,expectedRevision,operation,planId=data.mode){
+  if(planId!=='active'&&planId!==data.mode)throw new Error('El método de ahorro no coincide con el plan.');
+  const document=ref(planId);
   const operationId=crypto.randomUUID();
   const activity=storeApi.doc(db,'users',auth.currentUser.uid,'operations',operationId);
   await storeApi.runTransaction(db,async transaction=>{
@@ -55,7 +80,7 @@ export async function save(data,expectedRevision,operation){
 export async function listOperations(cursor=null,pageSize=25){
   if(!auth?.currentUser)throw new Error('Inicia sesión para consultar tu historial.');
   const collection=storeApi.collection(db,'users',auth.currentUser.uid,'operations');
-  const clauses=[storeApi.orderBy('revision','desc')];
+  const clauses=[storeApi.orderBy('createdAt','desc')];
   if(cursor)clauses.push(storeApi.startAfter(cursor));
   clauses.push(storeApi.limit(pageSize+1));
   const snapshot=await storeApi.getDocs(storeApi.query(collection,...clauses));

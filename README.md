@@ -8,7 +8,7 @@ Aplicación web instalable para registrar manualmente el ahorro hacia una meta d
 
 ## Qué guarda cada cuenta
 
-Firebase Authentication identifica a cada persona. Cloud Firestore conserva su plan activo en `users/{uid}/plans/active` y un registro de operaciones en `users/{uid}/operations/{operationId}`. Crear un plan, registrar o corregir un aporte y cambiar la meta escriben el plan y un evento de actividad en una sola transacción. Las operaciones no se pueden editar ni eliminar desde el cliente. Las reglas comprueban el UID, la estructura de los datos y que ambos documentos se escriban juntos.
+Firebase Authentication identifica a cada persona. Cloud Firestore conserva hasta tres planes independientes en `users/{uid}/plans/{mode}` (`weekly`, `flexible`, `daily`) y un registro común de operaciones en `users/{uid}/operations/{operationId}`. Los planes anteriores siguen en `users/{uid}/plans/active` y se muestran en su modalidad original, sin mover ni borrar sus aportes. Crear un plan, registrar o corregir un aporte y cambiar la meta escriben el plan correspondiente y un evento de actividad en una sola transacción. Las operaciones no se pueden editar ni eliminar desde el cliente. Las reglas comprueban el UID, la modalidad, la estructura de los datos y que ambos documentos se escriban juntos.
 
 El historial de actividad comienza con la publicación de esta versión. Los aportes anteriores que sigan vigentes se mantienen en el plan; las correcciones antiguas que no quedaron guardadas en el modelo anterior no se pueden reconstruir. El registro es una declaración manual del usuario, no una certificación bancaria.
 

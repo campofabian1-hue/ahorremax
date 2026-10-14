@@ -23,7 +23,7 @@ function cloudHarness(currentRevision = 0) {
     crypto: { randomUUID: () => '12345678-1234-1234-1234-123456789abc' },
     location: { protocol: 'https:' },
   };
-  runInNewContext(source + '\nglobalThis.cloudTest={save,listOperations,configure:(api)=>{auth={currentUser:{uid:"owner-1"}};db={};storeApi=api}};', context);
+  runInNewContext(source + '\nglobalThis.cloudTest={save,watchPlans,listOperations,configure:(api)=>{auth={currentUser:{uid:"owner-1"}};db={};storeApi=api}};', context);
   context.cloudTest.configure(api);
   return { cloud: context.cloudTest, api, writes };
 }
@@ -35,7 +35,7 @@ const plan = {
 
 test('a confirmed plan change and its audit operation are written atomically', async () => {
   const { cloud, writes } = cloudHarness();
-  await cloud.save(plan, 0, { type: 'plan_created', amount: 0, ids: [], entryId: '' });
+  await cloud.save(plan, 0, { type: 'plan_created', amount: 0, ids: [], entryId: '' }, 'active');
   assert.equal(writes.length, 2);
   assert.equal(writes[0].path, 'users/owner-1/plans/active');
   assert.equal(writes[0].data.revision, 1);
@@ -51,11 +51,45 @@ test('a stale revision makes no plan or activity write', async () => {
   assert.equal(writes.length, 0);
 });
 
+test('each new method writes its own plan without changing the legacy plan', async () => {
+  const { cloud, writes } = cloudHarness();
+  await cloud.save({ ...plan, mode: 'daily' }, 0,
+    { type: 'plan_created', amount: 0, ids: [], entryId: '' }, 'daily');
+  assert.equal(writes[0].path, 'users/owner-1/plans/daily');
+  assert.equal(writes[1].data.mode, 'daily');
+  await assert.rejects(() => cloud.save(plan, 0, { type: 'plan_created' }, 'daily'), /no coincide/);
+});
+
+test('existing active plan and named plans are combined per method', () => {
+  const { cloud, api } = cloudHarness();
+  const listeners = new Map();
+  api.onSnapshot = (ref, _options, onData) => { listeners.set(ref.path, onData); return () => listeners.delete(ref.path); };
+  const updates = [];
+  const stop = cloud.watchPlans(plans => updates.push(plans), error => { throw error; });
+  const emit = (id, data) => listeners.get(`users/owner-1/plans/${id}`)({
+    metadata: { hasPendingWrites: false }, exists: () => Boolean(data), data: () => data,
+  });
+  emit('weekly', { ...plan, mode: 'weekly', revision: 1 });
+  emit('daily', null);
+  emit('flexible', null);
+  assert.equal(updates.length, 0);
+  emit('active', { ...plan, mode: 'flexible', revision: 4 });
+  assert.equal(updates.length, 1);
+  assert.equal(updates[0].flexible.planId, 'active');
+  assert.equal(updates[0].flexible.revision, 4);
+  assert.equal(updates[0].weekly.planId, 'weekly');
+  assert.equal(updates[0].daily, null);
+  emit('daily', { ...plan, mode: 'daily', revision: 1 });
+  assert.equal(updates[1].daily.planId, 'daily');
+  stop();
+  assert.equal(listeners.size, 0);
+});
+
 test('activity pagination stays scoped to the authenticated user', async () => {
   const { cloud, api } = cloudHarness();
   let collectionPath;
   api.collection = (_db, ...parts) => { collectionPath = parts.join('/'); return collectionPath; };
-  api.orderBy = (...args) => args;
+  api.orderBy = (...args) => { assert.equal(args[0], 'createdAt'); return args; };
   api.limit = count => count;
   api.query = (...args) => args;
   api.getDocs = async () => ({ docs: [{ id: 'op-1', data: () => ({ type: 'plan_created', createdAt: { toDate: () => new Date('2026-09-25T12:00:00Z') } }) }] });

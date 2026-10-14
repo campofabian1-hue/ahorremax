@@ -5,8 +5,8 @@ service cloud.firestore {
       function owner() {
         return request.auth != null && request.auth.uid == userId;
       }
-      function planPath() {
-        return /databases/$(database)/documents/users/$(userId)/plans/active;
+      function planPath(planId) {
+        return /databases/$(database)/documents/users/$(userId)/plans/$(planId);
       }
       function operationPath(operationId) {
         return /databases/$(database)/documents/users/$(userId)/operations/$(operationId);
@@ -32,6 +32,13 @@ service cloud.firestore {
           && getAfter(operationPath(d.lastOperationId)).data.mode == d.mode
           && getAfter(operationPath(d.lastOperationId)).data.purpose == d.purpose;
       }
+      function operationMatchesPlan(planId, operationId) {
+        return existsAfter(planPath(planId))
+          && getAfter(planPath(planId)).data.lastOperationId == operationId
+          && getAfter(planPath(planId)).data.revision == request.resource.data.revision
+          && getAfter(planPath(planId)).data.mode == request.resource.data.mode
+          && getAfter(planPath(planId)).data.purpose == request.resource.data.purpose;
+      }
       function validOperation() {
         let d = request.resource.data;
         return d.keys().hasAll(['type','revision','mode','amount','ids','entryId','shortcut','purpose','createdAt'])
@@ -48,11 +55,17 @@ service cloud.firestore {
           && ((d.type in ['plan_created','goal_updated'] && d.amount == 0 && d.ids.size() == 0 && d.entryId == '')
             || (d.type in ['contribution_added','contribution_corrected'] && d.amount > 0 && d.ids.size() > 0 && d.entryId.size() > 0));
       }
-      match /plans/active {
-        allow read: if owner();
+      match /plans/{planId} {
+        allow read: if owner() && planId in ['active','weekly','flexible','daily'];
         allow create: if owner() && validPlan() && request.resource.data.revision == 1
+          && (planId == 'active' || planId == request.resource.data.mode)
+          && ((planId == 'active' && !exists(planPath(request.resource.data.mode)))
+            || (planId == request.resource.data.mode
+              && (!exists(planPath('active'))
+                || get(planPath('active')).data.mode != planId)))
           && operationCommittedWithPlan();
         allow update: if owner() && validPlan()
+          && (planId == 'active' || planId == request.resource.data.mode)
           && request.resource.data.revision == resource.data.revision + 1
           && request.resource.data.mode == resource.data.mode
           && operationCommittedWithPlan();
@@ -62,11 +75,8 @@ service cloud.firestore {
         allow read: if owner();
         allow create: if owner() && operationId.matches('^[a-f0-9-]{36}$')
           && validOperation()
-          && existsAfter(planPath())
-          && getAfter(planPath()).data.lastOperationId == operationId
-          && getAfter(planPath()).data.revision == request.resource.data.revision
-          && getAfter(planPath()).data.mode == request.resource.data.mode
-          && getAfter(planPath()).data.purpose == request.resource.data.purpose;
+          && (operationMatchesPlan('active', operationId)
+            || operationMatchesPlan(request.resource.data.mode, operationId));
         allow update, delete: if false;
       }
     }
