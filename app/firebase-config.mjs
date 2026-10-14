@@ -1,7 +1,7 @@
 // Public Firebase WEB configuration only. Never place private keys or Meta secrets here.
 // Enable both providers and deploy firestore.rules before configuring this object.
 export function authDomainForHost(hostname) {
-  return ['fcfinanzas.com', 'ahorremax-c1e48.web.app'].includes(hostname)
+  return hostname === 'fcfinanzas.com'
     ? hostname
     : 'ahorremax-c1e48.firebaseapp.com';
 }

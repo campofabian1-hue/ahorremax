@@ -25,7 +25,7 @@ python3 scripts/build_pages.py
 
 El flujo de GitHub Actions valida la lógica, construye la PWA y publica `docs/` en GitHub Pages cuando se actualiza `main`. Esa URL redirige al sitio principal para mantener una sola instalación y un origen de acceso con Google. En Settings → Pages, la fuente debe ser **GitHub Actions**.
 
-Firebase Hosting publica el mismo sitio estático en `https://ahorremax-c1e48.web.app/`. Para actualizarlo después de probar los cambios: `python3 scripts/build_pages.py && firebase deploy --only hosting,firestore:rules --project ahorremax-c1e48`. El sitio `fcfinanzas.com/app/ahorremax/` se publica desde el repositorio privado `fc-finanzas-estrategias` mediante Netlify; conserva allí su configuración de seguridad y metadatos propios.
+Firebase Hosting publica `https://ahorremax-c1e48.web.app/` como enlace de entrada que dirige al sitio principal. Esto evita un inicio de sesión separado en un dominio que Google no reconoce como origen de OAuth. Para actualizarlo después de probar los cambios: `python3 scripts/build_pages.py && firebase deploy --only hosting,firestore:rules --project ahorremax-c1e48`. El sitio `fcfinanzas.com/app/ahorremax/` se publica desde el repositorio privado `fc-finanzas-estrategias` mediante Netlify; conserva allí su configuración de seguridad y metadatos propios.
 
 Firebase ya usa el proyecto `ahorremax-c1e48`. Las reglas se validan y publican con:
 

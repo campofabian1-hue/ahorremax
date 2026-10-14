@@ -6,8 +6,15 @@ import { authDomainForHost } from '../app/firebase-config.mjs';
 
 test('OAuth handler uses the same origin where it is available', () => {
   assert.equal(authDomainForHost('fcfinanzas.com'), 'fcfinanzas.com');
-  assert.equal(authDomainForHost('ahorremax-c1e48.web.app'), 'ahorremax-c1e48.web.app');
+  assert.equal(authDomainForHost('ahorremax-c1e48.web.app'), 'ahorremax-c1e48.firebaseapp.com');
   assert.equal(authDomainForHost('campofabian1-hue.github.io'), 'ahorremax-c1e48.firebaseapp.com');
+});
+
+test('secondary publication URLs send visitors to the tested site', () => {
+  const html = readFileSync(new URL('../app/index.html', import.meta.url), 'utf8');
+  assert.match(html, /campofabian1-hue\.github\.io/);
+  assert.match(html, /ahorremax-c1e48\.web\.app/);
+  assert.match(html, /location\.replace\('https:\/\/fcfinanzas\.com\/app\/ahorremax\/'\)/);
 });
 
 function redirectMode(hostname, authDomain, userAgent, installed = false) {
@@ -28,7 +35,7 @@ function redirectMode(hostname, authDomain, userAgent, installed = false) {
 
 test('login redirects when the OAuth handler is on the same origin', () => {
   assert.equal(redirectMode('fcfinanzas.com', 'fcfinanzas.com', 'iPhone'), true);
-  assert.equal(redirectMode('ahorremax-c1e48.web.app', 'ahorremax-c1e48.web.app', 'Android', true), true);
+  assert.equal(redirectMode('ahorremax-c1e48.web.app', 'ahorremax-c1e48.firebaseapp.com', 'Android', true), false);
   assert.equal(redirectMode('fcfinanzas.com', 'fcfinanzas.com', 'Desktop'), true);
   assert.equal(redirectMode('campofabian1-hue.github.io', 'ahorremax-c1e48.firebaseapp.com', 'iPhone'), false);
 });
