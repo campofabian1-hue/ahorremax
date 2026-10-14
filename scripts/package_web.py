@@ -17,7 +17,7 @@ bundle += '\nconst cloud=(()=>{\n' + body('app/firebase-config.mjs') + body('app
 bundle += '\nreturn {providersReady,configured,initialize,usesRedirect,signIn,signOut,watchPlans,save,listOperations,errorMessage};\n})();\n'
 bundle += body('app/main.mjs') + '\n})();\n'
 (OUT / 'app.js').write_text(bundle)
-for name in ['styles.css','theme.css','wallet-theme.css','brand.css','motivation.css','studio.css','mark.svg','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-512-maskable.png','icon-studio-180.png','icon-studio-192.png','icon-studio-512.png','icon-studio-512-maskable.png']:
+for name in ['styles.css','theme.css','wallet-theme.css','brand.css','motivation.css','studio.css','mark.svg','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-512-maskable.png','icon-studio-180.png','icon-studio-192.png','icon-studio-512.png','icon-studio-512-maskable.png','icon-esmeralda-180.png','icon-esmeralda-192.png','icon-esmeralda-512.png','icon-esmeralda-512-maskable.png']:
     shutil.copy2(ROOT/'app'/name, OUT/name)
 (OUT/'assets').mkdir()
 shutil.copy2(ROOT/'app/assets/google.png',OUT/'assets/google.png')
@@ -56,7 +56,7 @@ EN TU COMPUTADOR: abre index.html para explorar los tres retos en modo de prueba
 
 EN LA APP: elige un reto, escribe para qué quieres ahorrar, indica dónde guardarás el dinero y comienza. Puedes editar el nombre de la meta después. La barra y los hitos muestran el avance registrado manualmente; la app no verifica depósitos bancarios.
 
-IDENTIDAD: se mantiene intacto el logo original morado y turquesa de Ahorremax. El nuevo icono de instalación está en icon-studio-180.png, icon-studio-192.png, icon-studio-512.png y icon-studio-512-maskable.png. Los tres iconos de los retos están optimizados en assets/icons/; sus originales de alta resolución están en recursos-originales/. El sistema visual está documentado en SISTEMA_VISUAL.md.
+IDENTIDAD: se mantiene intacto el logo original morado y turquesa de Ahorremax. El nuevo icono de instalación verde esmeralda está en icon-esmeralda-180.png, icon-esmeralda-192.png, icon-esmeralda-512.png y icon-esmeralda-512-maskable.png. Los tres iconos de los retos están optimizados en assets/icons/; sus originales de alta resolución están en recursos-originales/. El sistema visual está documentado en SISTEMA_VISUAL.md.
 
 EN TU HOSTING: sube TODO el contenido de este ZIP a una carpeta propia, por ejemplo public_html/ahorremax/. El index.html debe quedar directamente en esa carpeta. Abre https://TU-DOMINIO/ahorremax/. No reemplaces la página principal. No es un plugin de WordPress.
 
@@ -67,7 +67,7 @@ HISTORIAL: cada cuenta conserva sus aportes vigentes y, desde esta versión, un 
 La instalación como aplicación móvil requiere HTTPS. En Android, usa el botón de instalación o la opción del navegador. En iPhone, usa Compartir > Agregar a pantalla de inicio. Antes de abrirla a clientes en otro dominio, verifica allí el acceso con Google, la escritura y lectura de aportes, el cierre y regreso de sesión, y la instalación en teléfono. Presupuestos, viajes y proyectos son módulos futuros: este paquete contiene los tres retos de ahorro actuales.
 ''')
 shutil.copy2(ROOT/'SISTEMA_VISUAL.md',OUT/'SISTEMA_VISUAL.md')
-zip_path=ROOT/'entregables/Ahorremax-v8-icono-studio.zip'
+zip_path=ROOT/'entregables/Ahorremax-v9-icono-esmeralda.zip'
 with zipfile.ZipFile(zip_path,'w',zipfile.ZIP_DEFLATED) as z:
     for p in sorted(OUT.rglob('*')):
         if p.is_file(): z.write(p,p.relative_to(OUT))
