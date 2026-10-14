@@ -39,6 +39,12 @@ async function persist(nextEntries,operation){
 function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function escape(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function installAvailable(){return location.protocol==='https:'&&!window.matchMedia?.('(display-mode: standalone)').matches&&!navigator.standalone;}
+function notifyPersistent(message){
+  const el=document.querySelector('#notice');
+  if(!el)return;
+  el.textContent=message;
+  clearTimeout(timer);
+}
 function notify(message) { const el = document.querySelector('#notice'); el.textContent = message; clearTimeout(timer); timer = setTimeout(() => el.textContent = '', 5000); }
 async function loadActivity(reset=false){
   if(demo||!user||(!reset&&(!activityMore||activityLoading)))return;
@@ -72,7 +78,7 @@ function walletNavigation() {
 function walletBottomNavigation() {
   return `<nav class="wallet-bottom-nav" aria-label="Navegación principal"><button data-action="home" class="${screen==='dashboard'&&tab==='plan'?'active':''}"><span>◫</span>Resumen</button><button data-action="plans" class="${screen==='plans'?'active':''}"><span>▦</span>Retos</button><button data-action="history" class="${tab==='history'?'active':''}"><span>◷</span>Historial</button></nav>`;
 }
-function welcome() { const install=installAvailable()?'<button class="secondary install-button" data-action="install">Instalar Ahorremax en mi celular</button>':''; return `${location.protocol==='file:'?'<div class="setup-note">Vista local de demostración. Para iniciar sesión y guardar tu avance, abre la aplicación desde tu página web.</div>':''}<div class="login-layout"><section class="login-intro"><div class="intro-chip">AHORRAR TAMBIÉN SE DISFRUTA</div><p class="eyebrow">Un hábito que crece contigo</p><h1>Pequeños pasos.<span>Un millón de posibilidades.</span></h1><p class="muted">Elige cómo quieres ahorrar, separa tu dinero y mira cómo cada aporte te acerca a tu meta.</p><div class="goal-note"><div><strong>3 caminos</strong><span>Elige el que va contigo</span></div><div><strong>$1.000.000</strong><span>Una meta para empezar</span></div></div></section><section class="login-card"><p class="eyebrow">Tu meta empieza aquí</p><h2>Vamos por ese millón.</h2><p class="muted">Elige tu cuenta y lleva tu avance contigo.</p><button class="google" data-action="google"><img class="provider-logo" src="./assets/google.png" alt="">Continuar con Google</button><button class="google facebook" data-action="facebook"><svg class="provider-logo" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#0866ff"/><path fill="white" d="M16.7 15.5l.53-3.5h-3.36V9.73c0-.96.47-1.89 1.97-1.89h1.53V4.87s-1.39-.24-2.72-.24c-2.77 0-4.59 1.68-4.59 4.72V12H7v3.5h3.06V24h3.81v-8.5z"/></svg>Continuar con Facebook</button>${!cloud.providersReady.google||!cloud.providersReady.facebook?`<div class="setup-note small muted">${cloud.providersReady.google?'Google está habilitado. Facebook estará disponible próximamente.':'Estamos conectando las cuentas. Mientras tanto, explora la demo.'}</div>`:'<p class="small muted">Tu historial se guarda de forma privada en tu cuenta.</p>'}<button class="primary" data-action="demo">Probar sin cuenta <span aria-hidden="true">→</span></button>${install}<p class="small muted" style="margin:20px 0 0">Tú guardas el dinero donde prefieras. Ahorremax te ayuda a llevar el registro.</p></section></div>`; }
+function welcome() { const install=installAvailable()?'<button class="secondary install-button" data-action="install">Instalar Ahorremax en mi celular</button>':''; return `${location.protocol==='file:'?'<div class="setup-note">Vista local de demostración. Para iniciar sesión y guardar tu avance, abre la aplicación desde tu página web.</div>':''}<div class="login-layout"><section class="login-intro"><div class="intro-chip">AHORRAR TAMBIÉN SE DISFRUTA</div><p class="eyebrow">Un hábito que crece contigo</p><h1>Pequeños pasos.<span>Un millón de posibilidades.</span></h1><p class="muted">Elige cómo quieres ahorrar, separa tu dinero y mira cómo cada aporte te acerca a tu meta.</p><div class="goal-note"><div><strong>3 caminos</strong><span>Elige el que va contigo</span></div><div><strong>$1.000.000</strong><span>Una meta para empezar</span></div></div></section><section class="login-card"><p class="eyebrow">Tu meta empieza aquí</p><h2>Vamos por ese millón.</h2><p class="muted">Elige tu cuenta y lleva tu avance contigo.</p><button class="google" data-action="google"><img class="provider-logo" src="./assets/google.png" alt="">Continuar con Google</button>${cloud.providersReady.facebook?`<button class="google facebook" data-action="facebook"><svg class="provider-logo" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#0866ff"/><path fill="white" d="M16.7 15.5l.53-3.5h-3.36V9.73c0-.96.47-1.89 1.97-1.89h1.53V4.87s-1.39-.24-2.72-.24c-2.77 0-4.59 1.68-4.59 4.72V12H7v3.5h3.06V24h3.81v-8.5z"/></svg>Continuar con Facebook</button>`:''}${!cloud.providersReady.google||!cloud.providersReady.facebook?`${cloud.providersReady.google?'':'<div class="setup-note small muted">Estamos conectando las cuentas. Mientras tanto, explora la demo.</div>'}`:'<p class="small muted">Tu historial se guarda de forma privada en tu cuenta.</p>'}<button class="primary" data-action="demo">Probar sin cuenta <span aria-hidden="true">→</span></button>${install}<p class="small muted" style="margin:20px 0 0">Tú guardas el dinero donde prefieras. Ahorremax te ayuda a llevar el registro.</p></section></div>`; }
 function plans() {
   const order = ['weekly', 'flexible', 'daily'];
   const details = {
@@ -183,7 +189,13 @@ root.addEventListener('click',async event=>{
   if(button.dataset.id){selected.has(button.dataset.id)?selected.delete(button.dataset.id):selected.add(button.dataset.id);const scroll=window.scrollY;render();window.scrollTo(0,scroll);return;}
   if(button.dataset.remove){const removed=entries.find(e=>e.id===button.dataset.remove);if(removed&&await confirm('Corregir este aporte','Se retirará este registro del total y sus casillas quedarán disponibles otra vez.')){if(await persist(entries.filter(e=>e.id!==button.dataset.remove),{type:'contribution_corrected',amount:removed.amount,ids:removed.ids,entryId:removed.id,shortcut:removed.shortcut||''})){render();notify('Registro corregido.');}}return;}
   switch(button.dataset.action){
-    case 'google': case 'facebook': if(signingIn){notify('Ya hay una ventana de acceso abierta. Complétala o ciérrala para intentarlo de nuevo.');break;} signingIn=true;button.disabled=true;notify('Abriendo el acceso. Si no ves la ventana, revisa si tu navegador bloqueó las ventanas emergentes.');try{await cloud.signIn(button.dataset.action);}catch(error){notify(cloud.errorMessage(error));}finally{signingIn=false;button.disabled=false;}break;
+    case 'google': case 'facebook':
+      if(signingIn){notify('Ya hay una ventana de acceso abierta. Complétala o ciérrala para intentarlo de nuevo.');break;}
+      signingIn=true;button.disabled=true;
+      notify(cloud.usesRedirect()?'Te vamos a llevar a Google. Vuelves aquí al terminar.':'Abriendo el acceso. Si no ves la ventana, revisa si tu navegador bloqueó las ventanas emergentes.');
+      try{await cloud.signIn(button.dataset.action);}catch(error){notify(cloud.errorMessage(error));}
+      finally{signingIn=false;button.disabled=false;}
+      break;
     case 'home': screen=!demo&&!hasPlan?'plans':'dashboard';tab='plan';render();window.scrollTo(0,0);break;
     case 'history': screen=!demo&&!hasPlan?'plans':'dashboard';tab='history';render();if(!demo&&hasPlan)void loadActivity(true);window.scrollTo(0,0);break;
     case 'more-activity': void loadActivity();break;
@@ -233,8 +245,9 @@ cloud.initialize(async account=>{
   activityRequest++;activity=[];activityCursor=null;activityMore=false;activityLoading=false;activityLoaded=false;activityError='';
   if(!account){demo=true;screen='welcome';render();return;}
   demo=false;screen='loading';root.innerHTML='<main class="shell"><h1>Recuperando tu avance…</h1></main>';
-  unwatch=cloud.watch(data=>{try{const priorRevision=revision;if(data){restore(data);hasPlan=true;screen='dashboard';}else{hasPlan=false;screen='plans';}syncError=false;render();if(tab==='history'&&revision!==priorRevision)void loadActivity(true);}catch(error){syncError=true;screen='welcome';render();notify(error.message);}},error=>{syncError=true;screen='welcome';render();notify(cloud.errorMessage(error));});
-}).catch(error=>notify(cloud.errorMessage(error)));
+  let initialSnapshot=true;
+  unwatch=cloud.watch(data=>{try{const priorRevision=revision;if(data){restore(data);hasPlan=true;if(initialSnapshot)screen='plans';}else{hasPlan=false;screen='plans';}initialSnapshot=false;syncError=false;render();if(tab==='history'&&revision!==priorRevision)void loadActivity(true);}catch(error){syncError=true;screen='welcome';render();notifyPersistent(error.message);}},error=>{syncError=true;screen='welcome';render();notifyPersistent(cloud.errorMessage(error));});
+}).catch(error=>notifyPersistent(cloud.errorMessage(error)));
 
 window.addEventListener?.('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;});
 window.addEventListener?.('appinstalled',()=>{installPrompt=null;notify('Ahorremax quedó instalada en este dispositivo.');});

@@ -14,7 +14,7 @@ def body(path):
 
 bundle = "'use strict';\n(()=>{\n" + body('src/savings.mjs')
 bundle += '\nconst cloud=(()=>{\n' + body('app/firebase-config.mjs') + body('app/cloud.mjs')
-bundle += '\nreturn {providersReady,configured,initialize,signIn,signOut,watch,save,listOperations,errorMessage};\n})();\n'
+bundle += '\nreturn {providersReady,configured,initialize,usesRedirect,signIn,signOut,watch,save,listOperations,errorMessage};\n})();\n'
 bundle += body('app/main.mjs') + '\n})();\n'
 (OUT / 'app.js').write_text(bundle)
 for name in ['styles.css','theme.css','wallet-theme.css','brand.css','motivation.css','studio.css','mark.svg','icon.svg','icon-180.png','icon-192.png','icon-512.png','icon-512-maskable.png']:
@@ -67,7 +67,7 @@ HISTORIAL: cada cuenta conserva sus aportes vigentes y, desde esta versión, un 
 La instalación como aplicación móvil requiere HTTPS. En Android, usa el botón de instalación o la opción del navegador. En iPhone, usa Compartir > Agregar a pantalla de inicio. Antes de abrirla a clientes en otro dominio, verifica allí el acceso con Google, la escritura y lectura de aportes, el cierre y regreso de sesión, y la instalación en teléfono. Presupuestos, viajes y proyectos son módulos futuros: este paquete contiene los tres retos de ahorro actuales.
 ''')
 shutil.copy2(ROOT/'SISTEMA_VISUAL.md',OUT/'SISTEMA_VISUAL.md')
-zip_path=ROOT/'entregables/Ahorremax-v5-cuentas-historial.zip'
+zip_path=ROOT/'entregables/Ahorremax-v6-publicacion.zip'
 with zipfile.ZipFile(zip_path,'w',zipfile.ZIP_DEFLATED) as z:
     for p in sorted(OUT.rglob('*')):
         if p.is_file(): z.write(p,p.relative_to(OUT))

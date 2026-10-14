@@ -2,9 +2,9 @@
 
 Aplicación web instalable para registrar manualmente el ahorro hacia una meta de $1.000.000 COP. Ofrece tres recorridos: 26 semanas, 200 días con 200 casillas flexibles y 40 días. El dinero permanece donde la persona decida; Ahorremax no accede a cuentas bancarias ni ejecuta transferencias.
 
-**Abrir e instalar:** https://campofabian1-hue.github.io/ahorremax/
+**Abrir e instalar:** https://fcfinanzas.com/app/ahorremax/ (la dirección anterior de GitHub Pages redirige aquí).
 
-**Paquete para otro sitio web:** [descargar Ahorremax-v5-cuentas-historial.zip](https://github.com/campofabian1-hue/ahorremax/releases/download/v0.5.0/Ahorremax-v5-cuentas-historial.zip). Extrae todo el contenido y sube los archivos a una carpeta del sitio, manteniendo `index.html` en esa carpeta. Autoriza el dominio en Firebase Authentication para que funcione el acceso con Google.
+**Paquete para otro sitio web:** ejecuta `python3 scripts/package_web.py` para generar el ZIP actualizado en `entregables/`. Extrae todo el contenido y sube los archivos a una carpeta del sitio, manteniendo `index.html` en esa carpeta. Autoriza el dominio en Firebase Authentication y comprueba allí el acceso con Google antes de distribuirlo.
 
 ## Qué guarda cada cuenta
 
@@ -23,7 +23,9 @@ python3 scripts/build_pages.py
 
 ## Publicar
 
-El flujo de GitHub Actions valida la lógica, construye la PWA y publica `docs/` en GitHub Pages cuando se actualiza `main`. En Settings → Pages, la fuente debe ser **GitHub Actions**. Para usar un dominio propio, configúralo en GitHub Pages y agrégalo también a los dominios autorizados de Firebase Authentication.
+El flujo de GitHub Actions valida la lógica, construye la PWA y publica `docs/` en GitHub Pages cuando se actualiza `main`. Esa URL redirige al sitio principal para mantener una sola instalación y un origen de acceso con Google. En Settings → Pages, la fuente debe ser **GitHub Actions**.
+
+Firebase Hosting publica el mismo sitio estático en `https://ahorremax-c1e48.web.app/`. Para actualizarlo después de probar los cambios: `python3 scripts/build_pages.py && firebase deploy --only hosting,firestore:rules --project ahorremax-c1e48`. El sitio `fcfinanzas.com/app/ahorremax/` se publica desde el repositorio privado `fc-finanzas-estrategias` mediante Netlify; conserva allí su configuración de seguridad y metadatos propios.
 
 Firebase ya usa el proyecto `ahorremax-c1e48`. Las reglas se validan y publican con:
 

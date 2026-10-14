@@ -1,4 +1,4 @@
-const CACHE='ahorremax-shell-v12';
+const CACHE='ahorremax-shell-v20';
 const ASSETS=['./','./index.html','./styles.css','./theme.css','./wallet-theme.css','./brand.css','./motivation.css','./studio.css','./main.mjs?v=11','./cloud.mjs','./firebase-config.mjs','./mark.svg','./icon-180.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./manifest.webmanifest','./assets/google.png','./assets/ahorremax-logo.png','./assets/ahorremax-mark.png','./assets/icons/weekly.png','./assets/icons/flexible.png','./assets/icons/daily.png','./assets/campaign/weekly.webp','./assets/campaign/flexible.webp','./assets/campaign/daily.webp','../src/savings.mjs'];
 const urls=ASSETS.map(path=>new URL(path,self.location).href);
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(urls))));

@@ -11,13 +11,20 @@ export async function initialize(onUser) {
   ]);
   authApi=a;storeApi=s;
   const app=appApi.initializeApp(firebaseConfig);auth=a.getAuth(app);db=s.getFirestore(app);
+  let redirectError=null;
+  try{await a.getRedirectResult(auth);}catch(error){redirectError=error;}
   a.onAuthStateChanged(auth,onUser);
+  if(redirectError)throw redirectError;
+}
+export function usesRedirect(){
+  return location.hostname===firebaseConfig.authDomain;
 }
 export async function signIn(provider) {
   if(location.protocol==='file:')throw new Error('Para iniciar sesión, abre Ahorremax desde tu página web o http://localhost:4173/app/. El archivo local solo permite explorar la demo.');
   if(!providersReady[provider])throw new Error(`El acceso con ${provider==='google'?'Google':'Facebook'} aún se está configurando. Puedes explorar la demo.`);
   if(!configured||!authApi)throw new Error('El acceso está pendiente de configuración. Puedes explorar la demo.');
   const p=provider==='google'?new authApi.GoogleAuthProvider():new authApi.FacebookAuthProvider();
+  if(usesRedirect())return authApi.signInWithRedirect(auth,p);
   return authApi.signInWithPopup(auth,p);
 }
 export async function signOut(){ if(auth)await authApi.signOut(auth); }
