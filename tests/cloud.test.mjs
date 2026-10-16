@@ -20,10 +20,11 @@ function cloudHarness(currentRevision = 0) {
   const context = {
     firebaseConfig: { projectId: 'test', apiKey: 'test', authDomain: 'test' },
     providersReady: { google: true, facebook: false },
+    webPushVapidKey: '',
     crypto: { randomUUID: () => '12345678-1234-1234-1234-123456789abc' },
     location: { protocol: 'https:' },
   };
-  runInNewContext(source + '\nglobalThis.cloudTest={save,watchPlans,listOperations,configure:(api)=>{auth={currentUser:{uid:"owner-1"}};db={};storeApi=api}};', context);
+  runInNewContext(source + '\nglobalThis.cloudTest={save,saveDream,saveDreamPhoto,watchPlans,watchDream,listOperations,listDreamOperations,configure:(api)=>{auth={currentUser:{uid:"owner-1"}};db={};storeApi=api}};', context);
   context.cloudTest.configure(api);
   return { cloud: context.cloudTest, api, writes };
 }
@@ -58,6 +59,37 @@ test('each new method writes its own plan without changing the legacy plan', asy
   assert.equal(writes[0].path, 'users/owner-1/plans/daily');
   assert.equal(writes[1].data.mode, 'daily');
   await assert.rejects(() => cloud.save(plan, 0, { type: 'plan_created' }, 'daily'), /no coincide/);
+});
+
+test('the personal dream writes its plan and audit record separately from fixed challenges', async () => {
+  const { cloud, writes } = cloudHarness();
+  await cloud.saveDream({
+    mode: 'dream', purpose: 'Mi viaje', goal: 1200000, cadence: 'monthly',
+    strategy: 'amount', startDate: '2026-10-15', targetDate: '',
+    contribution: 100000, periods: 12, projectedDate: '2027-09-15',
+    place: 'pocket', placeName: 'Nequi', saved: 0, entries: [],
+  }, 0, { type: 'dream_created', amount: 0, entryId: '' });
+  assert.equal(writes.length, 2);
+  assert.equal(writes[0].path, 'users/owner-1/plans/dream');
+  assert.equal(writes[1].path, 'users/owner-1/dreamOperations/12345678-1234-1234-1234-123456789abc');
+  assert.equal(writes[1].data.type, 'dream_created');
+});
+
+test('a dream photo and its private audit event are written together', async () => {
+  const { cloud, writes } = cloudHarness();
+  const image = 'data:image/jpeg;base64,aGVsbG8=';
+  await cloud.saveDreamPhoto(image, 0);
+  assert.equal(writes.length, 2);
+  assert.equal(writes[0].path, 'users/owner-1/dreamMedia/cover');
+  assert.equal(writes[0].data.imageData, image);
+  assert.equal(writes[1].path, 'users/owner-1/dreamMediaOperations/12345678-1234-1234-1234-123456789abc');
+  assert.equal(writes[1].data.type, 'photo_added');
+});
+
+test('a stale dream photo revision cannot overwrite another device', async () => {
+  const { cloud, writes } = cloudHarness(2);
+  await assert.rejects(() => cloud.saveDreamPhoto('data:image/jpeg;base64,aGVsbG8=', 1), /otro dispositivo/);
+  assert.equal(writes.length, 0);
 });
 
 test('existing active plan and named plans are combined per method', () => {

@@ -15,3 +15,6 @@ export const firebaseConfig = {
   appId: '1:764434714902:web:8ea77697c5bf4d70668037',
 };
 export const providersReady = { google:true, facebook:false };
+// Public key from Firebase Console → Cloud Messaging → Web Push certificates.
+// Leave empty until this project's key has been generated; never use a private key here.
+export const webPushVapidKey = '';

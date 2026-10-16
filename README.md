@@ -1,6 +1,6 @@
 # Ahorremax
 
-Aplicación web instalable para registrar manualmente el ahorro hacia una meta de $1.000.000 COP. Ofrece tres recorridos: 26 semanas, 200 días con 200 casillas flexibles y 40 días. El dinero permanece donde la persona decida; Ahorremax no accede a cuentas bancarias ni ejecuta transferencias.
+Aplicación web instalable para registrar manualmente el ahorro. Ofrece tres recorridos hacia $1.000.000 COP —26 semanas, 200 días con 200 casillas flexibles y 40 días— y un cuarto reto, **Cumple tu sueño**, en el que cada persona define su meta, frecuencia y plazo o aporte. El dinero permanece donde la persona decida; Ahorremax no accede a cuentas bancarias ni ejecuta transferencias.
 
 **Abrir e instalar:** https://fcfinanzas.com/app/ahorremax/ (la dirección anterior de GitHub Pages redirige aquí).
 
@@ -8,14 +8,14 @@ Aplicación web instalable para registrar manualmente el ahorro hacia una meta d
 
 ## Qué guarda cada cuenta
 
-Firebase Authentication identifica a cada persona. Cloud Firestore conserva hasta tres planes independientes en `users/{uid}/plans/{mode}` (`weekly`, `flexible`, `daily`) y un registro común de operaciones en `users/{uid}/operations/{operationId}`. Los planes anteriores siguen en `users/{uid}/plans/active` y se muestran en su modalidad original, sin mover ni borrar sus aportes. Crear un plan, registrar o corregir un aporte y cambiar la meta escriben el plan correspondiente y un evento de actividad en una sola transacción. Las operaciones no se pueden editar ni eliminar desde el cliente. Las reglas comprueban el UID, la modalidad, la estructura de los datos y que ambos documentos se escriban juntos.
+Firebase Authentication identifica a cada persona. Cloud Firestore conserva los tres planes fijos en `users/{uid}/plans/{mode}` (`weekly`, `flexible`, `daily`) y el plan personalizado en `users/{uid}/plans/dream`. Los planes anteriores siguen en `users/{uid}/plans/active` y se muestran en su modalidad original, sin mover ni borrar sus aportes. Los retos fijos registran operaciones en `users/{uid}/operations/{operationId}`; Cumple tu sueño registra su creación, aportes y correcciones en `users/{uid}/dreamOperations/{operationId}`. La foto elegida se guarda aparte en `users/{uid}/dreamMedia/cover`, con historial privado en `dreamMediaOperations`. Cada cambio y su evento se escriben en una transacción. Las reglas comprueban el UID, la estructura de los datos y la escritura conjunta.
 
 El historial de actividad comienza con la publicación de esta versión. Los aportes anteriores que sigan vigentes se mantienen en el plan; las correcciones antiguas que no quedaron guardadas en el modelo anterior no se pueden reconstruir. El registro es una declaración manual del usuario, no una certificación bancaria.
 
 ## Probar y construir
 
 ```bash
-node --test tests/*.test.mjs
+node --test tests/*.test.mjs tests/*.test.cjs
 python3 scripts/build_pages.py
 ```
 
@@ -35,6 +35,8 @@ firebase deploy --only firestore:rules --project ahorremax-c1e48
 ```
 
 El acceso con Google está configurado. Facebook permanece deshabilitado hasta completar su aplicación de Meta, el proveedor en Firebase y la comprobación del flujo. No se deben incluir secretos de Meta o claves privadas en este repositorio. La configuración web pública de Firebase está en `app/firebase-config.mjs`.
+
+Los avisos por aporte pendiente aparecen dentro del reto. El envío push al celular con la app cerrada está preparado para las 9:00 a. m. de Bogotá, pero necesita la clave pública VAPID, el plan Blaze, el despliegue de `functions:sendDreamReminders` y una prueba real por dispositivo. Sigue [NOTIFICACIONES.md](NOTIFICACIONES.md); subir el ZIP por sí solo no activa ese servicio.
 
 ## Instalar en el celular
 

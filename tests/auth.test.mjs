@@ -25,6 +25,7 @@ function redirectMode(hostname, authDomain, userAgent, installed = false) {
   const context = {
     firebaseConfig: { apiKey: 'test', projectId: 'test', authDomain },
     providersReady: { google: true, facebook: false },
+    webPushVapidKey: '',
     location: { protocol: 'https:', hostname },
     window: { matchMedia: () => ({ matches: installed }) },
     navigator: { userAgent, platform: '', maxTouchPoints: 0, standalone: false },

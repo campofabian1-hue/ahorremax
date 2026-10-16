@@ -10,8 +10,19 @@
   </script>
   <meta name="theme-color" content="#f8f7f4">
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="description" content="Ahorremax: tres caminos para construir tu primer millón de pesos ahorrados.">
-  <title>Ahorremax · Tu próximo millón</title>
+  <meta name="description" content="Ahorremax: cuatro retos para ahorrar a tu ritmo y construir la meta que tú elijas.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CO">
+  <meta property="og:site_name" content="FC Finanzas &amp; Estrategias">
+  <meta property="og:url" content="https://fcfinanzas.com/app/ahorremax/">
+  <meta property="og:title" content="Ahorremax · Cada aporte cuenta">
+  <meta property="og:description" content="Cuatro retos para ahorrar a tu ritmo, visualizar tu sueño y registrar cada aporte.">
+  <meta property="og:image" content="https://fcfinanzas.com/assets/og/ahorremax.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://fcfinanzas.com/assets/og/ahorremax.png">
+  <title>Ahorremax · Cada aporte cuenta</title>
   <link rel="icon" type="image/png" href="./icon-esmeralda-192.png">
   <link rel="apple-touch-icon" href="./icon-esmeralda-180.png">
   <link rel="stylesheet" href="./styles.css">
@@ -20,11 +31,13 @@
   <link rel="stylesheet" href="./brand.css">
   <link rel="stylesheet" href="./motivation.css">
   <link rel="stylesheet" href="./studio.css">
+  <link rel="stylesheet" href="./dream.css">
+  <link rel="stylesheet" href="./challenge-experience.css">
 </head>
 <body>
   <div id="app"></div>
   <div id="notice" role="status" aria-live="polite"></div>
-  <dialog id="confirm"><form method="dialog"><h2 id="dialog-title"></h2><p id="dialog-copy"></p><div class="dialog-actions"><button value="cancel" class="secondary">Volver</button><button value="confirm" class="primary">Confirmar</button></div></form></dialog>
-  <script type="module" src="./main.mjs?v=11"></script>
+  <dialog id="confirm"><form method="dialog"><h2 id="dialog-title"></h2><p id="dialog-copy"></p><div class="dialog-actions"><button value="cancel" class="secondary">Volver</button><button id="dialog-confirm" value="confirm" class="primary">Confirmar</button></div></form></dialog>
+<script type="module" src="./main.mjs?v=26"></script>
 </body>
 </html>

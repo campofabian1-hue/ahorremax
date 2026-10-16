@@ -1,50 +1,20 @@
-# Sistema visual de Ahorremax
+# Sistema visual de Ahorremax · cuatro retos
 
-Esta versión rediseña los tres retos actuales. La persona elige un método, define para qué ahorra y dónde guardará el dinero, registra aportes manualmente y revisa su avance. Presupuestos, viajes y proyectos quedan para versiones futuras. El rediseño conserva el logo original, la autenticación, las reglas de ahorro y el historial.
+Esta vista de selección ayuda a escoger por ritmo y propósito. Cada tarjeta muestra el nombre como texto editable, una miniatura tridimensional, la duración o flexibilidad del método y una acción concreta. Cuando existe un plan, muestra el propósito, el dinero registrado y el avance real de esa cuenta. No se presentan cifras de ejemplo como aportes realizados.
 
-## Dirección
+El logo morado y turquesa entregado por el propietario se conserva en `app/assets/ahorremax-logo.png`. Manrope se usa en títulos y cifras; los controles y textos de lectura mantienen la tipografía del resto de la aplicación. El fondo claro permite descansar la vista y las superficies se separan mediante bordes finos y sombras suaves.
 
-La identidad combina el violeta del logo de Ahorremax con menta para el avance. El fondo marfil y las superficies blancas dejan descansar la vista durante el trabajo. Cada reto tiene un color y un objeto tridimensional propio: azul para las 26 semanas, verde para las 200 casillas flexibles y coral para los 40 días. Las cifras y la siguiente acción tienen prioridad sobre la decoración.
+| Reto | Color de orientación | Imagen | Decisión que comunica |
+| --- | --- | --- | --- |
+| La Ruta del Millón | Azul `#396BC3` | Calendario de cerámica azul | Ahorrar cada semana durante 26 semanas |
+| Reto Marca y Gana | Verde `#008C70` | Tablero de casillas | Elegir y combinar montos a ritmo propio |
+| Reto Turbo | Coral `#DF6B38` | Calendario y monedas ascendentes | Ahorrar diariamente durante 40 días |
+| Cumple tu sueño | Violeta `#7847BB` | Alcancía de vidrio | Definir meta, frecuencia y plazo o aporte |
 
-| Función | Valor | Uso |
-| --- | --- | --- |
-| Marca | `#6032BD` | Acción principal, foco, selección y progreso |
-| Marca profunda | `#402183` | Texto y controles sobre fondos claros |
-| Avance | `#23B88E` | Progreso y acentos positivos |
-| Texto | `#28233D` | Cifras, títulos y contenido principal |
-| Texto secundario | `#675F76` | Ayudas y etiquetas |
-| Lienzo | `#F8F7F4` | Fondo de la aplicación |
-| Semanal | `#4169BF` | Reto de 26 semanas |
-| Flexible | `#117E69` | Reto de 200 casillas |
-| Diario | `#A95432` | Reto de 40 días |
+La familia de tarjetas está implementada en `app/challenge-experience.css`. Sus estados de foco, pulsación y selección funcionan también con teclado y pantallas táctiles. Los iconos de los tres retos originales están en `app/assets/icons/` y la alcancía personalizada en `app/assets/dream-jar.webp`. Las piezas anteriores de campaña permanecen en `app/assets/campaign/` como originales del proyecto, pero ya no se muestran ni se precargan en la selección. Cada modo mantiene su propia pantalla de trabajo.
 
-La tipografía combina Manrope para títulos y cifras con la fuente de lectura ya incorporada en la aplicación. Los tokens de color, radio, sombra y movimiento están centralizados en `app/studio.css` (en el ZIP, `studio.css`). Las tarjetas usan una iluminación suave, bordes tenues y sombras de contacto consistentes. Los botones principales tienen profundidad moderada y respuesta de presión.
+La cuarta modalidad se apoya en `app/dream.css`, `app/dream-feature.mjs`, `src/dream.mjs` y `src/peso-input.mjs`. El formulario permite calcular el aporte a partir de una fecha o proyectar la fecha a partir del aporte. Formatea COP con separador de miles, exige dos confirmaciones al iniciar, permite editar el plan y corregir aportes. El cálculo no incluye intereses ni rendimientos. El dinero permanece en la cuenta, bolsillo o efectivo que elija cada persona; la aplicación registra su declaración de ahorro.
 
-## Recursos
+Para publicar el plan personalizado con cuentas reales se deben desplegar **los archivos de la app y `firestore.rules` juntos**. Sus operaciones usan `users/{uid}/plans/dream` y `users/{uid}/dreamOperations/{operationId}`; los tres retos existentes conservan sus documentos y registros. La vista previa local solo permite comprobar la demo. Antes del lanzamiento, prueba en el dominio final el acceso con Google, la escritura y recuperación de los cuatro planes, el aislamiento entre cuentas y la actualización de instalaciones existentes. Facebook sigue pendiente de habilitación en Meta y Firebase.
 
-El logo entregado por el propietario permanece en `app/assets/ahorremax-logo.png`. No se redibujó ni se sustituyó.
-
-Cada reto cuenta con un icono individual generado para esta aplicación, sin nombre incrustado. Los archivos de alta resolución y con transparencia se conservan en `app/assets/icons/original/` (en el ZIP, `recursos-originales/`). Las versiones PNG reducidas a un máximo de 512 px, utilizadas en la interfaz y precargadas por el servicio sin conexión, están en `app/assets/icons/` (en el ZIP, `assets/icons/`).
-
-| Reto | Metáfora visual | Recurso optimizado |
-| --- | --- | --- |
-| 26 semanas | Agenda de cerámica azul, monedas y marca de avance | `app/assets/icons/weekly.png` |
-| 200 casillas | Bandeja de cerámica menta y monedas | `app/assets/icons/flexible.png` |
-| 40 días | Agenda de cerámica coral y monedas ascendentes | `app/assets/icons/daily.png` |
-
-## Comportamiento y adaptación
-
-Los accesos a retos muestran estados de reposo, elevación al pasar el cursor, presión, foco de teclado y reto activo. Los controles de aportes conservan selección, completado y deshabilitado; el formulario conserva validación nativa. El sistema contiene estilos para un estado de carga mediante `aria-busy` o `.is-loading`, disponible para un futuro ajuste de la capa de interacción. La versión actual mantiene su bloqueo de operaciones duplicadas en la lógica existente, pero no añade un indicador visual de progreso durante el guardado.
-
-Los movimientos son breves. La aparición de tarjetas comunica el cambio de pantalla sin retrasar formularios ni registros. `prefers-reduced-motion` elimina las animaciones no esenciales. La navegación inferior y la cabecera se mantienen visibles en móvil; el contenido usa dos o tres columnas según el ancho y una sola columna en teléfonos. Se conservan los textos editables y las etiquetas accesibles del código existente.
-
-## Configuración y publicación
-
-Ejecuta `python3 scripts/package_web.py` desde la carpeta del proyecto. El ZIP resultante queda en `entregables/Ahorremax-v5-cuentas-historial.zip`. Extrae el contenido antes de probarlo. Para publicarlo, sube **todo** el contenido del ZIP a una carpeta de tu hosting; `index.html`, `app.js`, las hojas de estilo, el manifiesto, `sw.js` y `assets/` deben permanecer juntos. HTTPS es necesario para instalar la aplicación en el celular y utilizar las cuentas.
-
-Google y el historial real dependen de la configuración de Firebase y de que el dominio final esté autorizado. Facebook requiere completar la configuración en Meta y Firebase. Antes de lanzar a usuarios, se debe probar en el dominio final el inicio de sesión, el registro y la lectura de aportes, la recuperación de sesión y el aislamiento entre dos cuentas. La vista local en modo demo utiliza aportes temporales y no confirma que la sincronización real funcione.
-# Campaña tipográfica 3D de los retos
-
-Cada modalidad tiene una composición propia que une su nombre en tipografía tridimensional y su objeto original: violeta y calendario semanal para La Ruta del Millón; verde y tablero de casillas para Reto Marca y Gana; coral y calendario diario para Reto Turbo. Las piezas usan iluminación de estudio, bordes pulidos y sombras de contacto. El logo de Ahorremax se conserva.
-
-Los originales de 1536 × 1024 se guardan en `app/assets/campaign/original/`. Las imágenes WebP de 960 × 640 suman aproximadamente 227 KB y se usan en las tarjetas sin recorte. Las frases siguen siendo texto editable; los nombres permanecen en los encabezados semánticos y las etiquetas accesibles. Los prompts de generación están en `app/assets/campaign/PROMPTS.md`.
+Genera el paquete con `python3 scripts/package_web.py`. El ZIP de revisión queda en `entregables/Ahorremax-v25-cuatro-retos-preview.zip`. Abre `http://127.0.0.1:4185/` con el servidor local de prueba si está en ejecución. No publiques el paquete ni las reglas hasta aprobar el diseño y completar la verificación con una cuenta real.
